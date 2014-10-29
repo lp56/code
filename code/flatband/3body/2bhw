@@ -1,0 +1,29 @@
+
+for(int i=0;i<S;i++){
+	xhop_l1(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	xhop_l2(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	xhop_r1(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	xhop_r2(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	yhop_l1(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	yhop_l2(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	yhop_r1(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	yhop_r2(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	zhop_l1(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	zhop_l2(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	zhop_r1(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	zhop_r2(i,M,N,t,H);
+	H[0]=t;H[1]=1;
+	onsite(i,M,N,U);
+}
+

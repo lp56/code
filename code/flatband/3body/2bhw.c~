@@ -1,0 +1,150 @@
+#include<stdio.h>
+#include<math.h>
+#include<stdlib.h>
+#include<gsl/gsl_vector.h>
+#include<gsl/gsl_matrix.h>
+#include<gsl/gsl_eigen.h>
+#include<gsl/gsl_complex_math.h>
+#include<gsl/gsl_complex.h>
+
+
+int index(int *x, int *y, int *z, int N){
+	int n=0;
+	for(int i=0; i<*x;i++)
+		n+=0.5*(pow((N-i),2)+(N-i));
+	for(int i=0;i<*y-*x;i++)
+		n+=(N-i-*x);
+	for(int i=0;i<*z-*y; i++)
+		n++;
+return n;
+}
+
+
+void sort(int *x, int *y, int *z){
+	int xyz[]={0,0,0};
+	if(*x>=*y && *x>=*z){
+		if(*y>*z){
+			xyz[0]=*z;
+			xyz[1]=*y;
+			xyz[2]=*x;
+		}
+		else{
+			xyz[0]=*y;
+			xyz[1]=*z;
+			xyz[2]=*x;
+		}
+	}
+	else if(*y>=*x && *y>=*z){
+		if(*z>*x){
+			xyz[0]=*x;
+			xyz[1]=*z;
+			xyz[2]=*y;
+		}
+		else{
+			xyz[0]=*z;
+			xyz[1]=*x;
+			xyz[2]=*y;
+		}
+	}
+	else if(*z>=*y && *z>=*x){
+		if(*x>*y){
+			xyz[0]=*y;
+			xyz[1]=*x;
+			xyz[2]=*z;
+		}
+		else{
+			xyz[0]=*x;
+			xyz[1]=*y;
+			xyz[2]=*z;
+		}
+	}
+	*x=xyz[0];
+	*y=xyz[1];
+	*z=xyz[2];
+}
+void findxyz(int i, int *x, int *y, int *z, int N){
+	int q=0;
+	int j=(pow(N,2)+N)*0.5;
+	while (i>j-1){ q++; j+=(pow(N-q,2)+(N-q))*0.5;}
+	*x=q;
+	int k=N-q;
+	while (i>j-(pow(N-*x,2)+(N-*x))*0.5+k-1){q++; k+=(N-q);}
+	*y=q;
+	*z=i-j+(pow(N-*x,2)+(N-*x))*0.5-k+N-q+*y;
+}
+
+
+void xhop_l1(int i, gsl_matrix *M, int N, double t, double H[2]){
+	int a=0,b=0,c=0,d=0;
+	int *x=&a, *y=&b, *z=&c, *xn=&d;
+	findxyz(i,x,y,z,N);
+	if(*x!=0){
+		*xn=*x-1;
+		if(*x==*y && *y==*z)
+			H[0]*=sqrt(2)/sqrt(6);
+		else if(*x == *y || *x == *z){
+			if(*xn != *y && *xn != *z)
+				H[0]*=1/sqrt(2);
+		}
+		if(*xn==*y && *y==*z)
+			H[0]*=sqrt(6)/sqrt(2);
+		else if(*xn == *y || *xn == *z){
+			if(*x != *y && *x != *z)
+				H[0]*=sqrt(2);
+		}
+		sort(xn,y,z);
+		gsl_matrix_set(M,index(xn,y,z,N),i,H[0]+gsl_matrix_get(M,index(xn,y,z,N),i));
+	}
+}
+void xhop_l2(int i, gsl_matrix *M, int N, double t, double H[2]){
+	int a=0,b=0,c=0,d=0;
+	int *x=&a, *y=&b, *z=&c, *xn=&d;
+	findxyz(i,x,y,z,N);
+	if(*x%2==0){
+		if(*x!=0){
+			*xn=*x-2;
+			if(*x==*y && *y==*z)
+				H[1]*=sqrt(2)/sqrt(6);
+			else if(*x == *y || *x == *z){
+				if(*xn != *y && *xn != *z)
+					H[1]*=1/sqrt(2);
+			}
+			if(*xn==*y && *y==*z)
+				H[1]*=sqrt(6)/sqrt(2);
+			else if(*xn == *y || *xn == *z){
+				if(*x != *y && *x != *z)
+					H[1]*=sqrt(2);
+			}
+			sort(xn,y,z);
+			gsl_matrix_set(M,index(xn,y,z,N),i,H[1]+gsl_matrix_get(M,index(xn,y,z,N),i));
+		}
+	}
+}
+void xhop_r1(int i, gsl_matrix *M, int N, double t, double H[2]){
+	int a=0,b=0,c=0,d=0;
+	int *x=&a, *y=&b, *z=&c, *xn=&d;
+	findxyz(i,x,y,z,N);
+	if(*x!=N-1){
+		*xn=*x+1;
+		if(*x==*y && *y==*z)	
+			H[0]*=sqrt(2)/sqrt(6);
+		else if(*x == *y || *x == *z){
+			if(*xn != *y && *xn != *z)
+				H[0]*=1/sqrt(2);
+			}
+		if(*xn==*y && *y==*z)
+			H[0]*=sqrt(6)/sqrt(2);
+		else if(*xn == *y || *xn == *z){
+			if(*x != *y && *x != *z)
+				H[0]*=sqrt(2);
+			}
+		sort(xn,y,z);
+		gsl_matrix_set(M,index(xn,y,z,N),i,H[0]+gsl_matrix_get(M,index(xn,y,z,N),i));
+	}
+}
+void xhop_r2(int i, gsl_matrix *M, int N, double t, double H[2]){
+	int a=0,b=0,c=0,d=0;
+	int *x=&a, *y=&b, *z=&c, *xn=&d;
+	findxyz(i,x,y,z,N);
+	if(*x%2==0){
+		if(*x!=N-1){
