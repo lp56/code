@@ -6,6 +6,7 @@
 #include<gsl/gsl_eigen.h>
 #include<gsl/gsl_complex_math.h>
 #include<gsl/gsl_complex.h>
+void msort(gsl_vector *v);
 int index(int *x, int *y, int N);
 void xhop_l1(int i, gsl_matrix *M, int N, double H[2]);
 void xhop_l2(int i, gsl_matrix *M, int N, double H[2], int s);
@@ -28,11 +29,13 @@ void m2set(int n, double U, double H[2], double t, gsl_matrix *M, double *ec);
 
 int main(){
 
-int N = 5; /*number of particles*/
+int N =5; /*number of particles*/
+int co = 0; /*print the coth excited state*/
+int rr = 1; /* rr = 0 excludes energy from all localised states, rr = 1 excludes energy from v states, rr = 2 includes all energy */
 double U = 10000;
 double H[] = {sqrt(2),1};
 double t = sqrt(2);
-/*double ev = -2;*/
+double ev = -2;
 double a=0; double *ec=&a;
 
 int n=2*(N-2)+3;
@@ -50,10 +53,8 @@ gsl_matrix *m2= gsl_matrix_alloc(n,n);
 			h=j-i;
 			if(h<0) h+=n;
 			gsl_matrix_set(m1,i,j,jev(alp,n,h));
-	/*		printf("%8g", gsl_matrix_get(m1,i,j));*/
 		}
-/*	printf("\n");*/}
-
+	}
 
 	alpha(U,H,t,alp,ec);
 
@@ -63,9 +64,7 @@ gsl_matrix *m2= gsl_matrix_alloc(n,n);
 			h=j-i;
 			if(h<0) h+=n;
 			gsl_matrix_set(m2,i,j,jevr(alp,n,h)+jevl(alp,n,h));
-	/*		printf("%10g", gsl_matrix_get(m2,i,j));*/
 		}
-/*	printf("\n")*/;
 	}
 
 
@@ -73,19 +72,77 @@ gsl_vector_complex *al = gsl_vector_complex_alloc(n);
 gsl_vector *be = gsl_vector_alloc(n);
 gsl_matrix_complex *evec = gsl_matrix_complex_alloc(n,n);
 gsl_eigen_genv_workspace *w = gsl_eigen_genv_alloc(n);
-gsl_eigen_genv(m1,m2,al,be,evec,w);
+gsl_eigen_genv(m2,m1,al,be,evec,w);
+gsl_vector *en = gsl_vector_alloc(n);
+
+for(int i=0;i<n;i++){
+	gsl_vector_set(en,i,GSL_REAL(gsl_vector_complex_get(al,i))/gsl_vector_get(be,i));
+}
+
+
+gsl_eigen_hermv_sort(en,evec,GSL_EIGEN_SORT_VAL_ASC);
 
 FILE *tea;
 char *m="w";
 tea=fopen("egg",m);
-
+FILE *breakfast;
+breakfast=fopen("vec",m);
 
 
 for(int i=0;i<n;i++){
-	fprintf(tea,"%g\n",GSL_REAL(gsl_vector_complex_get(al,i))/gsl_vector_get(be,i));
+	if(i%2==0) fprintf(tea,"%g	",(double)i/2); else fprintf(tea,"%g	",-(double)(i+1)/2);
+	if(rr==0) fprintf(tea,"%.10lf\n",gsl_vector_get(en,i));
+	else if (rr==1) fprintf(tea,"%.10lf\n",gsl_vector_get(en,i)+*ec);
+	else if (rr==2)  fprintf(tea,"%.10lf\n",gsl_vector_get(en,i)+*ec+(N-2)*ev);
 }
 
-fprintf(tea,"\n%g\n",*ec);
+if(co%2==0){
+	if((co/2)%2==0){
+		for(int j=0;j<n;j++){
+			fprintf(breakfast,"%i	",j);
+			fprintf(breakfast,"%g	",GSL_REAL(gsl_matrix_complex_get(evec,j,co)));
+			fprintf(breakfast,"%g\n",GSL_IMAG(gsl_matrix_complex_get(evec,j,co)));
+		}
+	}
+
+	else{ 
+		for(int j=0;j<n;j++){
+			fprintf(breakfast,"%i	",j);
+			if(j%2==0) {
+				fprintf(breakfast,"%g	",-GSL_REAL(gsl_matrix_complex_get(evec,j,co)));
+				fprintf(breakfast,"%g\n",GSL_IMAG(gsl_matrix_complex_get(evec,j,co)));
+			}
+			else{
+				fprintf(breakfast,"%g	",GSL_REAL(gsl_matrix_complex_get(evec,j,co)));
+				fprintf(breakfast,"%g\n",GSL_IMAG(gsl_matrix_complex_get(evec,j,co-1)));
+			}
+		}
+	}
+}
+
+else{
+	if(((co+1)/2)%2==0){
+		for(int j=0;j<n;j++){
+			fprintf(breakfast,"%i	",j);
+			fprintf(breakfast,"%g	",GSL_REAL(gsl_matrix_complex_get(evec,j,co)));
+			fprintf(breakfast,"%g\n",GSL_IMAG(gsl_matrix_complex_get(evec,j,co)));
+		}
+	}
+
+	else{
+		for(int j=0;j<n;j++){
+			fprintf(breakfast,"%i	",j);
+			if(j%2==0){
+				fprintf(breakfast,"%g	",-GSL_REAL(gsl_matrix_complex_get(evec,j,co)));
+				fprintf(breakfast,"%g\n",GSL_IMAG(gsl_matrix_complex_get(evec,j,co)));
+			}
+			else{ 
+				fprintf(breakfast,"%g	",GSL_REAL(gsl_matrix_complex_get(evec,j,co)));
+				fprintf(breakfast,"%g\n",GSL_IMAG(gsl_matrix_complex_get(evec,j,co+1)));
+			}
+		}
+	}
+}
 
 gsl_eigen_genv_free(w);
 gsl_matrix_free(m1);

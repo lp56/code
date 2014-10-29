@@ -96,7 +96,7 @@ double jev(double alp[21],int F, int h){
 
 	}
 
-	else if(h==0){
+	else if(h==0||h==F){
 
 		for(int k=0;k<7;k++){
 			for(int m=k+1;m<7;m++){
@@ -145,7 +145,7 @@ double jevr(double alp[21], int F, int h){
 
 	if(F-4>h && h>1){
 
-		n=h/2-3;
+		n=h/2-3/2;
 		if(h%2==0) return 0;
 		for(int k=0;k<7;k++){
 			for(int m=k+1;m<7;m++){
@@ -225,7 +225,8 @@ double jevr(double alp[21], int F, int h){
 		s*=pow(4,N-4);
 	}
 
-s *=sqrt(2);
+
+	else if(h==F||h==0) return 0;
 
 return s;
 
@@ -325,7 +326,7 @@ double jevl(double alp[21], int F, int h){
 
 	}
 
-s *=sqrt(2);
+	else if(h==F||h==0) return 0;
 
 return s;
 

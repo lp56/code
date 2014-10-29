@@ -43,19 +43,7 @@ for (int i=0; i<S; i++){
 
 *ec=gsl_vector_get(evals,0);
 
-int a=0, b=0;
-int *x=&a,*y=&b;
 
-for (int i=0; i<N; i++){
-	for(int j=i+1;j<N;j++){
-		*x=i;*y=j;
-		printf("%g\n",alp[index(x,y,7)]);
-}
-		}
-printf("\n");
-for (int i=0; i<S; i++){
-		printf("%g\n",alp[i]);					
-		}
 printf("alpha ran ok\n");
 
 }

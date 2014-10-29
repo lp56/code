@@ -3,9 +3,9 @@ CFLAGS = -Wall -std=c99 -O3
 LDLIBS = -lm -lgsl -lgslcblas
 
 all: main
-	./main > dat.dat
+	./main
 
-main : main.o 2bhw.o alpha.o mtr.o
+main : main.o 2bhw.o alpha.o mtr.o msort.o
 
 main.o : main.c 
 
